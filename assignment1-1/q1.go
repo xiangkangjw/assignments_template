@@ -1,8 +1,13 @@
 package cos418_hw1_1
 
 import (
+	"bufio"
 	"fmt"
+	"log"
+	"os"
+	"regexp"
 	"sort"
+	"strings"
 )
 
 // Find the top K most common words in a text document.
@@ -18,7 +23,47 @@ func topWords(path string, numWords int, charThreshold int) []WordCount {
 	// TODO: implement me
 	// HINT: You may find the `strings.Fields` and `strings.ToLower` functions helpful
 	// HINT: To keep only alphanumeric characters, use the regex "[^0-9a-zA-Z]+"
-	return nil
+	file, err := os.Open(path)
+	checkError(err)
+	reg, err := regexp.Compile("[^0-9a-zA-Z]+")
+	checkError(err)
+	words := readFile(file, reg, charThreshold)
+	wordMap := make(map[string]int)
+	for _, word := range words {
+		if count, ok := wordMap[word]; ok {
+			wordMap[word] = count + 1
+		} else {
+			wordMap[word] = 1
+		}
+	}
+	wordCounts := make([]WordCount, len(wordMap))
+	i := 0
+	for k, v := range wordMap {
+		wordCounts[i] = WordCount{k, v}
+		i++
+	}
+	sortWordCounts(wordCounts)
+	return wordCounts[:numWords]
+}
+
+func readFile(file *os.File, reg *regexp.Regexp, charThreshold int) []string {
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	scanner.Split(bufio.ScanWords)
+	result := make([]string, 0)
+	for scanner.Scan() {
+		word := scanner.Text()
+		word = strings.ToLower(word)
+		word = reg.ReplaceAllString(word, "")
+		if len(word) < charThreshold {
+			continue
+		}
+		result = append(result, word)
+	}
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
+	}
+	return result
 }
 
 // A struct that represents how many times a word is observed in a document
