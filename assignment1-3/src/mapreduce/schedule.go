@@ -27,8 +27,7 @@ func (mr *Master) schedule(phase jobPhase) {
 	workers := mr.workers
 	go func() {
 		for {
-			worker, isOpen := <-mr.registerChannel
-			debug("worker %s, isOpen %t\n", worker, isOpen)
+			worker := <-mr.registerChannel
 			workers = append(workers, worker)
 		}
 	}()
@@ -38,7 +37,6 @@ func (mr *Master) schedule(phase jobPhase) {
 			break
 		}
 		for _, worker := range workers {
-			debug("here\n")
 			arg := DoTaskArgs{
 				JobName:       mr.jobName,
 				File:          mr.files[taskIndex],
