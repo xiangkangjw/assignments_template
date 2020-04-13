@@ -1,7 +1,5 @@
 package mapreduce
 
-import "log"
-
 // schedule starts and waits for all tasks in the given phase (Map or Reduce).
 func (mr *Master) schedule(phase jobPhase) {
 	var ntasks int
@@ -50,7 +48,8 @@ func (mr *Master) schedule(phase jobPhase) {
 			}
 			ok := call(worker, "Worker.DoTask", arg, new(struct{}))
 			if !ok {
-				log.Fatal("Failed to schedule")
+				debug("Failed to schedule")
+				continue
 			}
 			taskIndex++
 			if taskIndex == ntasks {
